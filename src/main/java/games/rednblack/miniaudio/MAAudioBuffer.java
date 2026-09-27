@@ -34,6 +34,8 @@ public class MAAudioBuffer extends MADataSource {
      * @param size size of data to be written
      */
     public void write(float[] data, int size) {
+        if (size < 0 || size > data.length)
+            throw new IllegalArgumentException("Invalid size: " + size + " (data length " + data.length + ").");
         if (size > bufferSize)
             throw new IllegalArgumentException("Buffer size exceeded.");
         jniWrite(dataBufferAddress, data, size);
@@ -51,7 +53,7 @@ public class MAAudioBuffer extends MADataSource {
     }
 
     /**
-     * Get the length of the buffer in PCM frames.
+     * Get the length of the buffer in float samples (PCM frames multiplied by the channel count).
      *
      * @return max length of the buffer
      */

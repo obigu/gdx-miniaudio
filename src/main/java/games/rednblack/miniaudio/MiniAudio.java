@@ -2154,7 +2154,7 @@ public class MiniAudio implements Disposable {
      */
     public MAAudioBuffer createAudioBuffer(int size, int channels) {
         long dataBuffer = jniCreateDataBuffer(size, channels);
-        return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, size, channels), dataBuffer, size, this);
+        return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, size, channels), dataBuffer, size * channels, this);
     }
 
     private native long jniCreateDataBuffer(int size, int channels);/*
@@ -3114,7 +3114,7 @@ public class MiniAudio implements Disposable {
             if (decodedFrames == 0) {
                 throw new MiniAudioException("Could not decode any frame from data", MAResult.MA_ERROR);
             }
-            return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, decodedFrames, outputChannels), dataBuffer, decodedFrames, this);
+            return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, decodedFrames, outputChannels), dataBuffer, decodedFrames * outputChannels, this);
         }
 
         long[] results = jniDecodeBytes(data, data.length, outputChannels);
@@ -3128,7 +3128,7 @@ public class MiniAudio implements Disposable {
             throw new MiniAudioException("Could not decode any frame from data", MAResult.MA_ERROR);
         }
 
-        return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, decodedFrames, outputChannels), dataBuffer, decodedFrames, this);
+        return new MAAudioBuffer(jniCreateAudioBuffer(dataBuffer, decodedFrames, outputChannels), dataBuffer, decodedFrames * outputChannels, this);
     }
 
     private native int jniDecodeBytesEmscripten(byte[] data, int length, int outputChannels);/*
