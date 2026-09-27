@@ -327,7 +327,7 @@ public class MiniAudio implements Disposable {
         }
 
         void ma_log_callback_jni(void* pUserData, ma_uint32 level, const char* pMessage) {
-            if (pMessage == NULL) {
+            if (pMessage == NULL || lock_free_queue == NULL) {
                 return;
             }
 
@@ -1146,6 +1146,12 @@ public class MiniAudio implements Disposable {
         ma_device_uninit(&device);
         ma_audio_buffer_ref_uninit(&inputBufferData);
 
+        // Context uninit can post log messages (e.g. on iOS "Failed to deactivate audio session." when
+        // AVAudioSession refuses to deactivate), so it must run while the event queue is still alive.
+        // Unregister the log callback right after so nothing can enqueue into the freed queue below.
+        ma_context_uninit(&context);
+        ma_log_unregister_callback(&maLog, pLogCallback);
+
         #if !defined(MA_EMSCRIPTEN)
         running_callback_thread = 0;
         ma_semaphore_release(&lock_free_queue->sem);
@@ -1176,9 +1182,8 @@ public class MiniAudio implements Disposable {
 
         uninit_queue(lock_free_queue);
         ma_free(lock_free_queue, NULL);
+        lock_free_queue = NULL;
 
-        ma_context_uninit(&context);
-        ma_log_unregister_callback(&maLog, pLogCallback);
         ma_log_uninit(&maLog);
 
         #if defined(MA_ANDROID)
